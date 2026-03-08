@@ -399,10 +399,20 @@ def obtener_noticias(simbolo_corto):
         except Exception:
             continue
 
-    # Primero las relevantes, luego el resto
-    relevantes = [n for n in noticias if n["relevante"]]
-    generales = [n for n in noticias if not n["relevante"]]
-    return (relevantes + generales)[:10]
+    # Ordenar todo por tiempo (más reciente primero)
+    def mins_noticia(n):
+        try:
+            import re
+            t = n.get("tiempo", "")
+            if not t: return 9999
+            num = int(re.search(r"\d+", t).group())
+            if "min" in t: return num
+            if "h"   in t: return num * 60
+            if "d"   in t: return num * 1440
+        except: pass
+        return 9999
+    noticias.sort(key=mins_noticia)
+    return noticias[:10]
 
 
 # ─────────────────────────────────────────────
@@ -810,6 +820,12 @@ if datos:
     df_velas = obtener_velas(cripto_simbolo, intervalo_val, 100)
     if df_velas is not None:
         st.plotly_chart(crear_grafico_velas(df_velas, cripto_nombre), use_container_width=True)
+    else:
+        st.markdown('''<div style="background:#0f1729;border:1px solid #1e2d4a;border-radius:10px;
+            padding:2rem;text-align:center;font-family:Space Mono,monospace;
+            font-size:0.75rem;color:#2a3a55;margin-bottom:1rem;">
+            Cargando gráfico de velas...
+        </div>''', unsafe_allow_html=True)
 
     # ── Noticias en tiempo real ──
     st.markdown("""
