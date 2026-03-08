@@ -613,6 +613,60 @@ def crear_grafico_linea_historial(df):
     return fig
 
 # ─────────────────────────────────────────────
+#  GRÁFICO DE LÍNEA — CoinGecko (sin Binance)
+# ─────────────────────────────────────────────
+@st.cache_data(ttl=60)
+def obtener_historial_coingecko(simbolo, horas=24):
+    symbol_map = {
+        "BTCUSDT": "bitcoin", "ETHUSDT": "ethereum", "BNBUSDT": "binancecoin",
+        "SOLUSDT": "solana",  "XRPUSDT": "ripple",   "ADAUSDT": "cardano",
+        "DOGEUSDT": "dogecoin", "DOTUSDT": "polkadot",
+    }
+    cg_id = symbol_map.get(simbolo, "bitcoin")
+    dias  = max(1, round(horas / 24, 1))
+    try:
+        url = f"https://api.coingecko.com/api/v3/coins/{cg_id}/market_chart?vs_currency=usd&days={dias}"
+        r   = requests.get(url, timeout=8)
+        data = r.json().get("prices", [])
+        if not data:
+            return None
+        import pandas as pd
+        df = pd.DataFrame(data, columns=["ts", "precio"])
+        df["ts"] = pd.to_datetime(df["ts"], unit="ms")
+        return df
+    except Exception:
+        return None
+
+def crear_grafico_linea(df, nombre):
+    import plotly.graph_objects as go
+    precio_min = df["precio"].min()
+    precio_max = df["precio"].max()
+    ultimo     = df["precio"].iloc[-1]
+    primero    = df["precio"].iloc[0]
+    color_line = "#00e676" if ultimo >= primero else "#ff4444"
+    fill_color = "rgba(0,230,118,0.05)" if ultimo >= primero else "rgba(255,68,68,0.05)"
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df["ts"], y=df["precio"],
+        mode="lines",
+        line=dict(color=color_line, width=2),
+        fill="tozeroy", fillcolor=fill_color,
+        name=nombre,
+        hovertemplate="$%{y:,.2f}<extra></extra>",
+    ))
+    fig.update_layout(
+        paper_bgcolor="#0a0e1a", plot_bgcolor="#0a0e1a",
+        font=dict(family="Space Mono, monospace", color="#4a6080", size=10),
+        margin=dict(l=0, r=0, t=10, b=0),
+        height=220,
+        showlegend=False,
+        xaxis=dict(gridcolor="#1e2d4a", zeroline=False),
+        yaxis=dict(gridcolor="#1e2d4a", zeroline=False, tickprefix="$"),
+    )
+    return fig
+
+# ─────────────────────────────────────────────
 #  FUNCIONES NUEVAS — Fear & Greed + Dólar + Economía AR
 # ─────────────────────────────────────────────
 
@@ -700,16 +754,10 @@ with st.sidebar:
     cripto_nombre = st.selectbox("Criptomoneda", list(CRIPTOS.keys()), index=0)
     cripto_simbolo = CRIPTOS[cripto_nombre]
 
-    intervalos_map = {
-        "1 minuto": "1m",
-        "5 minutos": "5m",
-        "15 minutos": "15m",
-        "1 hora": "1h",
-        "4 horas": "4h",
-        "1 día": "1d"
-    }
-    intervalo = st.selectbox("Intervalo de velas", list(intervalos_map.keys()), index=3)
-    intervalo_val = intervalos_map[intervalo]
+    # Rango del gráfico de línea
+    rangos_map = {"6 horas": 6, "24 horas": 24, "7 días": 168}
+    rango_nombre = st.selectbox("Rango del gráfico", list(rangos_map.keys()), index=1)
+    rango_horas = rangos_map[rango_nombre]
 
     auto_refresh = st.toggle("Auto-actualizar (10s)", value=True)
 
@@ -813,18 +861,18 @@ if datos:
     st.markdown(f"""
     <div style='font-family: Space Mono, monospace; font-size: 0.7rem; color: #4a6080;
                 letter-spacing: 1px; text-transform: uppercase; margin: 0.5rem 0 0.3rem;'>
-        {cripto_nombre} / USDT — {intervalo}
+        {cripto_nombre} / USDT — últimas {rango_nombre}
     </div>
     """, unsafe_allow_html=True)
 
-    df_velas = obtener_velas(cripto_simbolo, intervalo_val, 100)
-    if df_velas is not None:
-        st.plotly_chart(crear_grafico_velas(df_velas, cripto_nombre), use_container_width=True)
+    df_linea = obtener_historial_coingecko(cripto_simbolo, rango_horas)
+    if df_linea is not None:
+        st.plotly_chart(crear_grafico_linea(df_linea, cripto_nombre), use_container_width=True)
     else:
         st.markdown('''<div style="background:#0f1729;border:1px solid #1e2d4a;border-radius:10px;
-            padding:2rem;text-align:center;font-family:Space Mono,monospace;
-            font-size:0.75rem;color:#2a3a55;margin-bottom:1rem;">
-            Cargando gráfico de velas...
+            padding:1rem;text-align:center;font-family:Space Mono,monospace;
+            font-size:0.75rem;color:#2a3a55;margin-bottom:0.5rem;">
+            Cargando gráfico...
         </div>''', unsafe_allow_html=True)
 
     # ── Noticias en tiempo real ──
