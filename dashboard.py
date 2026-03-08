@@ -674,9 +674,11 @@ with st.sidebar:
         PRECIOS<br>
         <span style='color: #4a6080;'>Binance API (gratuita)</span><br><br>
         NOTICIAS<br>
-        <span style='color: #4a6080;'>CryptoPanic (sin key)</span><br><br>
+        <span style='color: #4a6080;'>RSS &amp; Google News</span><br><br>
+        DÓLAR &amp; ECONOMÍA<br>
+        <span style='color: #4a6080;'>DolarApi · ArgentinaDatos</span><br><br>
         ALOJAMIENTO<br>
-        <span style='color: #00e676;'>✓ 100% en tu PC</span>
+        <span style='color: #00e676;'>✓ Streamlit Cloud</span>
     </div>
     """, unsafe_allow_html=True)
 
