@@ -691,7 +691,7 @@ with col_title:
     <div class="dash-header">
         <div>
             <div class="dash-title">📈 CRYPTO DASHBOARD</div>
-            <div class="dash-subtitle">localhost · datos en tiempo real · base de datos local</div>
+            <div class="dash-subtitle">StreamlitHost · datos en tiempo real · base de datos local</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
