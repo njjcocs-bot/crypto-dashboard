@@ -759,7 +759,7 @@ with st.sidebar:
     rango_nombre = st.selectbox("Rango del gráfico", list(rangos_map.keys()), index=1)
     rango_horas = rangos_map[rango_nombre]
 
-    auto_refresh = st.toggle("Auto-actualizar (10s)", value=True)
+    auto_refresh = st.toggle("Auto-actualizar (15s)", value=True)
 
     st.markdown("---")
     st.markdown("""
