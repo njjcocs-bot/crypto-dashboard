@@ -1051,51 +1051,16 @@ if datos:
             st.markdown('<div class="metric-card"><div class="metric-label">ECONOMÍA ARGENTINA</div><div style="color:#2a3a55;font-size:0.75rem;">No disponible</div></div>', unsafe_allow_html=True)
 
 
-    import traceback
-    st.error("⚠ No se pudo obtener datos de Binance.")
-    st.info("Intentando con CoinGecko como respaldo...")
-    # Intento con CoinGecko (alternativa gratuita)
-    try:
-        symbol_map = {
-            "BTCUSDT": "bitcoin", "ETHUSDT": "ethereum", "BNBUSDT": "binancecoin",
-            "SOLUSDT": "solana", "XRPUSDT": "ripple", "ADAUSDT": "cardano",
-            "DOGEUSDT": "dogecoin", "DOTUSDT": "polkadot"
-        }
-        cg_id = symbol_map.get(cripto_simbolo, "bitcoin")
-        r = requests.get(
-            f"https://api.coingecko.com/api/v3/simple/price?ids={cg_id}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_high_24h=true&include_low_24h=true",
-            timeout=8
-        )
-        cg = r.json().get(cg_id, {})
-        if cg:
-            datos = {
-                "precio": cg.get("usd", 0),
-                "variacion_24h": cg.get("usd_24h_change", 0),
-                "volumen": cg.get("usd_24h_vol", 0),
-                "precio_max": cg.get("usd_24h_high", 0),
-                "precio_min": cg.get("usd_24h_low", 0),
-                "precio_apertura": cg.get("usd", 0),
-            }
-            st.success("✅ Conectado via CoinGecko")
-            precio_fmt = f"${datos['precio']:,.2f}" if datos['precio'] > 1 else f"${datos['precio']:.6f}"
-            variacion = datos['variacion_24h']
-            signo = "+" if variacion >= 0 else ""
-            color_var = "metric-change-pos" if variacion >= 0 else "metric-change-neg"
-            emoji_var = "▲" if variacion >= 0 else "▼"
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.markdown(f'''<div class="metric-card"><div class="metric-label">PRECIO ACTUAL</div><div class="metric-value">{precio_fmt}</div><div class="{color_var}">{emoji_var} {signo}{variacion:.2f}% (24h)</div></div>''', unsafe_allow_html=True)
-            with col2:
-                st.markdown(f'''<div class="metric-card"><div class="metric-label">MÁXIMO 24H</div><div class="metric-value" style="font-size:1.2rem;color:#00e676;">${datos["precio_max"]:,.2f}</div></div>''', unsafe_allow_html=True)
-            with col3:
-                st.markdown(f'''<div class="metric-card"><div class="metric-label">MÍNIMO 24H</div><div class="metric-value" style="font-size:1.2rem;color:#ff4444;">${datos["precio_min"]:,.2f}</div></div>''', unsafe_allow_html=True)
-            with col4:
-                vol_fmt = f"${datos['volumen']/1_000_000:.1f}M"
-                st.markdown(f'''<div class="metric-card"><div class="metric-label">VOLUMEN 24H</div><div class="metric-value" style="font-size:1.2rem;color:#00d4ff;">{vol_fmt}</div></div>''', unsafe_allow_html=True)
-        else:
-            st.error("❌ CoinGecko tampoco respondió. Intentá recargar la página.")
-    except Exception as e2:
-        st.error(f"❌ Error también con CoinGecko: {e2}")
+    # Sin datos disponibles — mostrar cards vacías sin mensajes de error
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown('<div class="metric-card"><div class="metric-label">PRECIO ACTUAL</div><div class="metric-value" style="color:#2a3a55;">—</div><div style="font-family:Space Mono,monospace;font-size:0.75rem;color:#2a3a55;">cargando...</div></div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown('<div class="metric-card"><div class="metric-label">MÁXIMO 24H</div><div class="metric-value" style="color:#2a3a55;">—</div></div>', unsafe_allow_html=True)
+    with col3:
+        st.markdown('<div class="metric-card"><div class="metric-label">MÍNIMO 24H</div><div class="metric-value" style="color:#2a3a55;">—</div></div>', unsafe_allow_html=True)
+    with col4:
+        st.markdown('<div class="metric-card"><div class="metric-label">VOLUMEN 24H</div><div class="metric-value" style="color:#2a3a55;">—</div></div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 #  AUTO-REFRESH
